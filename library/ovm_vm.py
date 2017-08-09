@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 
 DOCUMENTATION = '''
@@ -11,9 +11,9 @@ author: "Stephan Arts, @stephanarts"
 update: "Court Campbell"
 notes:
     - This module works with OVM 3.3 and 3.4
-    - Set hosts to the OVM Manager server
+    - Set hosts n your playbook to the OVM Manager server
 requirements:
-    - requests package is needed on host running the ansible script
+    - requests package update: "Court Campbell"
 options:
     name:
         description:
@@ -137,7 +137,13 @@ class OVMRestClient:
         )
 
         job = response.json()
-        self.monitor_job(job['responseId']['value'])
+        self.monitor_job(job['id']['value'])
+
+    def clone(self, object_type, data):
+	response = self.session.post(
+            self.base_uri+'/'+object_type,
+            data=json.dumps(data)
+        )
 
     def get(self, object_type, object_id):
         response = self.session.get(
@@ -152,12 +158,14 @@ class OVMRestClient:
         for obj in response.json():
             if obj['name'] == object_name:
                 return obj
+
         return None
 
     def get_ids(self, object_type):
         response = self.session.get(
             self.base_uri+'/'+object_type
         )
+
         return response.json()
 
     def monitor_job(self, job_id):
@@ -190,6 +198,10 @@ def main():
             ovm_pass=dict(required=True),
             ovm_host=dict(
                 default='https://127.0.0.1:7002'),
+            clone_vm=dict(
+                 default=False,
+                 required=False,
+                 type='bool'),
             server_pool=dict(required=True),
             repository=dict(required=True),
             vm_domain_type=dict(
@@ -252,15 +264,15 @@ def main():
 
     repository_id = client.get_id_for_name(
         'Repository',
-        module.param['repository'])
+        module.params['repository'])
 
     server_pool_id = client.get_id_for_name(
         'ServerPool',
-        module.param['server_pool'])
+        module.params['server_pool'])
 
     vm_id = client.get_id_for_name(
         'Vm',
-        module.param['name'])
+        module.params['name'])
 
     # Create a new vm if it does not exist
     if vm_id is None:
@@ -269,7 +281,7 @@ def main():
             data = {
                 'repositoryId': repository_id,
                 'serverPoolId': server_pool_id,
-                'vmDomainType': vm_domain_type,
+                'vmDomainType': module.params['vm_domain_type'],
                 'name': module.params['name'],
                 'cpuCount': vcpu_cores,
                 'cpuCountLimit': max_vcpu_cores,
