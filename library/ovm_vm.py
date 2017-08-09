@@ -217,7 +217,7 @@ def main():
             disks=dict(
                 type='list'),
             boot_order=dict(
-                required=True
+                required=True,
                 type='list'),
         )
     )
