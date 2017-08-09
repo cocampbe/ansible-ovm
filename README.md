@@ -3,6 +3,7 @@ This module can be used in an Ansible playbook to create VMs.
 
 ## Example ##
 
+```
 ---
  - hosts: <OVM_MANAGER>
    name: deploy an oracle vm
@@ -19,5 +20,6 @@ This module can be used in an Ansible playbook to create VMs.
        vcpu_cores: 1
        boot_order:
         - Disk
+```
         
 If you are not fanilair with Ansible, the host must be in your inventory file. Replace <OVM_MANAGER> with what you have in the inventory.
