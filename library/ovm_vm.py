@@ -252,15 +252,15 @@ def main():
 
     repository_id = client.get_id_for_name(
         'Repository',
-        module.param['repository'])
+        module.params['repository'])
 
     server_pool_id = client.get_id_for_name(
         'ServerPool',
-        module.param['server_pool'])
+        module.params['server_pool'])
 
     vm_id = client.get_id_for_name(
         'Vm',
-        module.param['name'])
+        module.params['name'])
 
     # Create a new vm if it does not exist
     if vm_id is None:
