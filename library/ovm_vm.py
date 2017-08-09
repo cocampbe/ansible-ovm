@@ -149,17 +149,15 @@ class OVMRestClient:
         response = self.session.get(
             self.base_uri+'/'+object_type+'/id'
         )
-        for element in resonse.json():
-            if element.name == object_name:
-                return element.id
-
+        for obj in response.json():
+            if obj['name'] == object_name:
+                return obj
         return None
 
     def get_ids(self, object_type):
         response = self.session.get(
             self.base_uri+'/'+object_type
         )
-
         return response.json()
 
     def monitor_job(self, job_id):
@@ -167,14 +165,14 @@ class OVMRestClient:
             response = self.session.get(
                 self.base_uri+'/Job/'+job_id)
             job = response.json()
-            if job.summaryDone:
-                if job.jobRunState == 'FAILURE':
+            if job['summaryDone']:
+                if job['jobRunState'] == 'FAILURE':
                     raise Exception('Job failed: %s' % job.error)
-                elif job.jobRunState == 'SUCCESS':
-                    if 'resultId' in job:
-                        return job.resultId
+                elif job['jobRunState'] == 'SUCCESS':
+                    if 'resultId' in job.keys():
+                        return job['resultId']
                     break
-                elif job.jobRunState == 'RUNNING':
+                elif job['jobRunState'] == 'RUNNING':
                     continue
                 else:
                     break
@@ -290,5 +288,6 @@ def main():
 
 # pylint: disable=wrong-import-position
 from ansible.module_utils.basic import AnsibleModule
+import json
 if __name__ == '__main__':
     main()
