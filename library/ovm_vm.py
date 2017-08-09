@@ -147,7 +147,7 @@ class OVMRestClient:
         response = self.session.get(
             self.base_uri+'/'+object_type+'/id'
         )
-        for element in resonse.json():
+        for element in response.json():
             if element.name == object_name:
                 return element.id
 
