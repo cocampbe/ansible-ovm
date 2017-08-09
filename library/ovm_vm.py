@@ -8,10 +8,12 @@ short_description: This module manages Virtual Machines inside Oracle-VM
 description:
   - Module to manage Virtual Machine definitions inside Oracle-VM
 author: "Stephan Arts, @stephanarts"
+update: "Court Campbell"
 notes:
     - This module works with OVM 3.3 and 3.4
+    - Set hosts to the OVM Manager server
 requirements:
-    - requests package
+    - requests package is needed on host running the ansible script
 options:
     name:
         description:
