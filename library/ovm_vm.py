@@ -130,7 +130,7 @@ class OVMRestClient:
         self.session = session
         self.base_uri = base_uri
 
-    def create(self, object_type, data):
+    def create_vm(self, object_type, data):
         response = self.session.post(
             self.base_uri+'/'+object_type,
             data=json.dumps(data)
@@ -138,8 +138,17 @@ class OVMRestClient:
 
         job = response.json()
         self.monitor_job(job['id']['value'])
+    
+    def create_vdisk(self, repositoryId, sparse, data):
+        response = self.session.post(
+            self.base_uri+'/Repository/'+repositoryId['value']+'/VirtualDisk?sparse='+str(sparse),
+            data=json.dumps(data)
+        )
 
-    def clone(self, object_type, data):
+        job = response.json()
+        self.monitor_job(job['id']['value'])
+
+    def clone_vm(self, object_type, data):
 	response = self.session.post(
             self.base_uri+'/'+object_type,
             data=json.dumps(data)
@@ -276,7 +285,7 @@ def main():
 
     # Create a new vm if it does not exist
     if vm_id is None:
-        vm = client.create(
+        vm = client.create_vm(
             'Vm',
             data = {
                 'repositoryId': repository_id,
@@ -287,13 +296,20 @@ def main():
                 'cpuCountLimit': max_vcpu_cores,
                 'memory': memory,
                 'memoryLimit': max_memory
-            }
-        )
+            })
+        if module.params['disks']:
+           for disk in module.params['disks']:
+               vdisk = client.create_vdisk(
+                   repository_id, disk['sparse'],
+                   data = {
+                       'name': disk['name'],
+                       'size': disk['size'] * (2**30)
+                   })
         changed = True
     else:
         vm = client.get(
             'Vm',
-            vm_id
+            vm_id['name']
         )
 
     module.exit_json(changed=False)
