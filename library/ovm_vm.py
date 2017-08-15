@@ -147,6 +147,15 @@ class OVMRestClient:
 
         job = response.json()
         self.monitor_job(job['id']['value'])
+    
+    def map_vdisk(self, vmId, data):
+        response = self.session.post(
+            self.base_uri+'/Vm/'+vmId['value']+'/VmDiskMapping',
+            data=json.dumps(data)
+        )
+
+        job = response.json()
+        self.monitor_job(job['id']['value'])
 
     def clone_vm(self, object_type, data):
 	response = self.session.post(
@@ -285,7 +294,7 @@ def main():
 
     # Create a new vm if it does not exist
     if vm_id is None:
-        vm = client.create_vm(
+        client.create_vm(
             'Vm',
             data = {
                 'repositoryId': repository_id,
@@ -297,22 +306,33 @@ def main():
                 'memory': memory,
                 'memoryLimit': max_memory
             })
+        # If dissks are defined, create them
         if module.params['disks']:
+           target = 0
            for disk in module.params['disks']:
-               vdisk = client.create_vdisk(
+               client.create_vdisk(
                    repository_id, disk['sparse'],
                    data = {
                        'name': disk['name'],
                        'size': disk['size'] * (2**30)
                    })
+               client.map_vdisk(
+                   client.get_id_for_name('Vm',module.params['name']),
+                   data = {
+                       'vmId': client.get_id_for_name('Vm',module.params['name']),
+                       'virtualDiskId': client.get_id_for_name('VirtualDisk',disk['name']),
+                       'diskTarget': target
+                   })
+               target += 1
         changed = True
     else:
-        vm = client.get(
+        client.get(
             'Vm',
             vm_id['name']
         )
+        changed=False
 
-    module.exit_json(changed=False)
+    module.exit_json(changed=changed)
 
 # pylint: disable=wrong-import-position
 from ansible.module_utils.basic import AnsibleModule
