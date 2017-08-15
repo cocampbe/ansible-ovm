@@ -135,7 +135,6 @@ class OVMRestClient:
             self.base_uri+'/'+object_type,
             data=json.dumps(data)
         )
-
         job = response.json()
         self.monitor_job(job['id']['value'])
     
@@ -144,7 +143,6 @@ class OVMRestClient:
             self.base_uri+'/Repository/'+repositoryId['value']+'/VirtualDisk?sparse='+str(sparse),
             data=json.dumps(data)
         )
-
         job = response.json()
         self.monitor_job(job['id']['value'])
     
@@ -153,7 +151,6 @@ class OVMRestClient:
             self.base_uri+'/Vm/'+vmId['value']+'/VmDiskMapping',
             data=json.dumps(data)
         )
-
         job = response.json()
         self.monitor_job(job['id']['value'])
 
@@ -162,6 +159,8 @@ class OVMRestClient:
             self.base_uri+'/'+object_type,
             data=json.dumps(data)
         )
+        job = response.json()
+        self.monitor_job(job['id']['value'])
 
     def get(self, object_type, object_id):
         response = self.session.get(
@@ -306,10 +305,12 @@ def main():
                 'memory': memory,
                 'memoryLimit': max_memory
             })
-        # If dissks are defined, create them
-        if module.params['disks']:
-           target = 0
-           for disk in module.params['disks']:
+        changed = True
+    # If dissks are defined, create them
+    if module.params['disks']:
+       target = 0
+       for disk in module.params['disks']:
+           if client.get_id_for_name('VirtualDisk',disk['name']) is None:
                client.create_vdisk(
                    repository_id, disk['sparse'],
                    data = {
@@ -324,13 +325,9 @@ def main():
                        'diskTarget': target
                    })
                target += 1
-        changed = True
-    else:
-        client.get(
-            'Vm',
-            vm_id['name']
-        )
-        changed=False
+               changed = True
+           else:
+               changed = False
 
     module.exit_json(changed=changed)
 
