@@ -185,6 +185,11 @@ class OVMRestClient:
 
         return response.json()
 
+    def get_disk_maps(self,vmId):
+        return self.session.get(
+            self.base_uri+'/Vm/'+vmId['value']+'/VmDiskMapping/id'
+        ).json()
+
     def monitor_job(self, job_id):
         while True:
             response = self.session.get(
@@ -293,6 +298,11 @@ def main():
 
     # Create a new vm if it does not exist
     if vm_id is None:
+        # Code for cloning from a template
+        if module.params['clone_vm']:
+            client.clone_vm()
+            module.exit_json(changed=changed)
+        
         client.create_vm(
             'Vm',
             data = {
@@ -308,7 +318,6 @@ def main():
         changed = True
     # If dissks are defined, create them
     if module.params['disks']:
-       target = 0
        for disk in module.params['disks']:
            if client.get_id_for_name('VirtualDisk',disk['name']) is None:
                client.create_vdisk(
@@ -322,9 +331,8 @@ def main():
                    data = {
                        'vmId': client.get_id_for_name('Vm',module.params['name']),
                        'virtualDiskId': client.get_id_for_name('VirtualDisk',disk['name']),
-                       'diskTarget': target
+                       'diskTarget': len(client.get_disk_maps(client.get_id_for_name('Vm',module.params['name']))) + 1
                    })
-               target += 1
                changed = True
            else:
                changed = False
