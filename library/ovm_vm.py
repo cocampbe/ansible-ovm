@@ -36,7 +36,7 @@ options:
             - The base-url for Oracle-VM.
         default: https://127.0.0.1:7002
         required: False
-    server_pool:
+    serverpool:
         description:
             - The Oracle-VM server-pool where to create/find the
             - Virtual Machine.
@@ -61,7 +61,7 @@ EXAMPLES = '''
     name: 'example_host'
     ovm_user: 'admin'
     ovm_pass: 'password'
-    server_pool: 'Madrid'
+    serverpool: 'Madrid'
     repository: 'Repo1'
     memory: 4096
     vcpu_cores: 4
@@ -154,10 +154,21 @@ class OVMRestClient:
         job = response.json()
         self.monitor_job(job['id']['value'])
 
-    def clone_vm(self, object_type, data):
-	response = self.session.post(
-            self.base_uri+'/'+object_type,
-            data=json.dumps(data)
+    def clone_vm(self, vmId, name, data):
+	response = self.session.put(
+            self.base_uri+'/Vm/'+vmId['value']+'/clone'+
+                '?serverPoolId='+data['serverPoolId']['value']+
+                '&repositoryId='+data['repositoryId']['value']+
+                '&vmCloneDefinitionId='+data['vmCloneDefinitionId']['value']+
+                '&createTemplate=false'
+        )
+        job = response.json()
+        clone_id = self.monitor_job(job['id']['value'])
+        vm = { 'id': self.get('Vm',clone_id['value'])['id'],
+                 'name': name }
+        response = self.session.put(
+            self.base_uri+'/Vm/'+clone_id['value'],
+            data=json.dumps(vm)
         )
         job = response.json()
         self.monitor_job(job['id']['value'])
@@ -175,20 +186,19 @@ class OVMRestClient:
         for obj in response.json():
             if obj['name'] == object_name:
                 return obj
-
         return None
 
     def get_ids(self, object_type):
         response = self.session.get(
             self.base_uri+'/'+object_type
         )
-
         return response.json()
 
     def get_disk_maps(self,vmId):
-        return self.session.get(
+        response = self.session.get(
             self.base_uri+'/Vm/'+vmId['value']+'/VmDiskMapping/id'
-        ).json()
+        )
+        return response.json()
 
     def monitor_job(self, job_id):
         while True:
@@ -221,10 +231,9 @@ def main():
             ovm_host=dict(
                 default='https://127.0.0.1:7002'),
             clone_vm=dict(
-                 default=False,
                  required=False,
-                 type='bool'),
-            server_pool=dict(required=True),
+                 type='dict'),
+            serverpool=dict(required=True),
             repository=dict(required=True),
             vm_domain_type=dict(
                 default='XEN_HVM',
@@ -251,7 +260,7 @@ def main():
             disks=dict(
                 type='list'),
             boot_order=dict(
-                required=True,
+                required=False,
                 type='list'),
         )
     )
@@ -288,9 +297,9 @@ def main():
         'Repository',
         module.params['repository'])
 
-    server_pool_id = client.get_id_for_name(
+    serverpool_id = client.get_id_for_name(
         'ServerPool',
-        module.params['server_pool'])
+        module.params['serverpool'])
 
     vm_id = client.get_id_for_name(
         'Vm',
@@ -300,14 +309,22 @@ def main():
     if vm_id is None:
         # Code for cloning from a template
         if module.params['clone_vm']:
-            client.clone_vm()
+            client.clone_vm(
+                client.get_id_for_name('Vm',module.params['clone_vm']['template']),
+                    module.params['name'],
+                    data = {
+                        'repositoryId': repository_id,
+                        'serverPoolId': serverpool_id,
+                        'vmCloneDefinitionId': client.get_id_for_name('VmCloneDefinition',module.params['clone_vm']['vmCloneDefinition'])
+                    })
+            changed = True
             module.exit_json(changed=changed)
         
         client.create_vm(
             'Vm',
             data = {
                 'repositoryId': repository_id,
-                'serverPoolId': server_pool_id,
+                'serverPoolId': serverpool_id,
                 'vmDomainType': module.params['vm_domain_type'],
                 'name': module.params['name'],
                 'cpuCount': vcpu_cores,
@@ -321,7 +338,8 @@ def main():
        for disk in module.params['disks']:
            if client.get_id_for_name('VirtualDisk',disk['name']) is None:
                client.create_vdisk(
-                   repository_id, disk['sparse'],
+                   client.get_id_for_name('Repository', disk['repository']),
+                   disk['sparse'],
                    data = {
                        'name': disk['name'],
                        'size': disk['size'] * (2**30)
@@ -331,7 +349,7 @@ def main():
                    data = {
                        'vmId': client.get_id_for_name('Vm',module.params['name']),
                        'virtualDiskId': client.get_id_for_name('VirtualDisk',disk['name']),
-                       'diskTarget': len(client.get_disk_maps(client.get_id_for_name('Vm',module.params['name']))) + 1
+                       'diskTarget': len(client.get_disk_maps(client.get_id_for_name('Vm',module.params['name'])))
                    })
                changed = True
            else:
