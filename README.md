@@ -3,7 +3,7 @@ This module can be used in an Ansible playbook to create VMs.
 
 ## Examples ##
 
-# Create a new VM #
+### Create a new VM ###
 
 ```
 ---
@@ -24,7 +24,7 @@ This module can be used in an Ansible playbook to create VMs.
         - Disk
 ```
 
-# Clone a VM #
+### Clone a VM ###
 
 ```
 ---
