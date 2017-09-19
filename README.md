@@ -20,6 +20,20 @@ This module can be used in an Ansible playbook to create VMs.
        repository: 'repo1'
        memory: 4096
        vcpu_cores: 1
+       disks:
+          - name: 'myOSDisk'
+            description: '...'
+            size: 50
+            sparse: False
+            repository: 'osdisk_repo'
+          - name: 'myDataDisk'
+            description: '...'
+            size: 250
+            sparse: False
+            repository: 'datadisk_repo'
+       networks:
+         - name: 'myVnic1'
+         - name: 'myVnic2'
        boot_order:
         - Disk
 ```
@@ -44,7 +58,7 @@ This module can be used in an Ansible playbook to create VMs.
            vmCloneDefinition: 'myCloneCustomizer'
 ```
         
-If you are not fanilair with Ansible, the host must be in your inventory file. Replace <OVM_MANAGER> with what you have in the inventory.
+If you are not familair with Ansible, the host must be in your inventory file. Replace <OVM_MANAGER> with what you have in the inventory.
 
 ## TODO ##
 
