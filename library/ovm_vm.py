@@ -65,11 +65,8 @@ EXAMPLES = '''
     repository: 'Repo1'
     memory: 4096
     vcpu_cores: 4
-    network_interfaces:
+    networks:
       - name: eth0
-        description: koffie
-        mac: '00:00:00:00:00:00'
-        network: 456787654
     disks:
       - name: example_host_system.1
         description: '...'
@@ -78,6 +75,17 @@ EXAMPLES = '''
         repository: 'Repo1'
     boot_order:
       - PXE
+
+- name: create VM
+       ovm_vm:
+         name: 'my_cloned_vm'
+         ovm_user: 'admin'
+         ovm_pass: 'password'
+         serverpool: 'Pool1'
+         repository: 'Repo1'
+         clone_vm:
+           template: 'MyVmTempalte'
+           vmCloneDefinition: 'MyCloneDefinition'
 '''
 
 RETURN = '''
@@ -145,6 +153,15 @@ class OVMRestClient:
         )
         job = response.json()
         self.monitor_job(job['id']['value'])
+    
+    def create_vnic(self, vmId, data):
+        response = self.session.post(
+            self.base_uri+'/Vm/'+vmId['value']+'/VirtualNic',
+            data=json.dumps(data)
+        )
+        job = response.json()
+        self.monitor_job(job['id']['value'])
+    
     
     def map_vdisk(self, vmId, data):
         response = self.session.post(
@@ -354,6 +371,14 @@ def main():
                changed = True
            else:
                changed = False
+    # Create and map networks
+    if  module.params['networks']:
+        for network in module.params['networks']:
+            if client.get_id_for_name('VirtualNic',network['name']) is None:
+                client.create_vnic(vm_id,data = { 'name': network['name'] })
+                changed = True
+	    else:
+	        changed = False
 
     module.exit_json(changed=changed)
 
