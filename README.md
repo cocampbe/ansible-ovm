@@ -106,4 +106,4 @@ If you are not familair with Ansible, the host must be in your inventory file. R
 
 ## TODO ##
 
-Modules are working. I am working on adding better results. I would like to add rc output so that you can use until to retry a task until it completes successfully.
+Modules are working. I am working on adding better results. I would like to add rc output so that you can use Ansibles 'do-until' to retry a task until it completes successfully.
