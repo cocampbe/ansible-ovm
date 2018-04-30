@@ -76,9 +76,34 @@ Various modules to manage OVM via Ansible
            - "vm1"
            - "vm2"
 ```
+
+### unpresent a repo ###
+
+```
+---
+ - hosts: <OVM_MANAGER>
+   gather_facts: no
+   tasks:
+     - name: unpresent repo 'Repo1'
+       ovm_repo_present:
+         ovm_user: 'username'
+         ovm_pass: 'password'
+         ovm_manager: "<OVM_MANAGER>"
+         repository: "Repo1"
+         server: "{{item}}"
+       with_items:
+           - "server1"
+           - "server2"
+```
         
 If you are not familair with Ansible, the host must be in your inventory file. Replace <OVM_MANAGER> with what you have in the inventory.
 
+## NOTES ##
+
+- Each module has an example section.
+- I need to review the code and make changes. I was in a rush to get these modules working.
+
+
 ## TODO ##
 
-I need to add code to create and map Networks.
+Modules are working. I am working on adding better results. I would like to add rc output so that you can use until to retry a task until it completes successfully.
