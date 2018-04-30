@@ -3,7 +3,7 @@
 
 DOCUMENTATION = '''
 ---
-module: ovm_vm
+module: ovm_vm_create
 short_description: This module manages Virtual Machines inside Oracle-VM
 description:
   - Module to manage Virtual Machine definitions inside Oracle-VM
@@ -57,7 +57,7 @@ options:
 
 EXAMPLES = '''
 - name: Create a Virtual Machine
-  ovm_vm:
+  ovm_vm_create:
     name: 'example_host'
     ovm_user: 'admin'
     ovm_pass: 'password'
@@ -77,15 +77,15 @@ EXAMPLES = '''
       - PXE
 
 - name: create VM
-       ovm_vm:
-         name: 'my_cloned_vm'
-         ovm_user: 'admin'
-         ovm_pass: 'password'
-         serverpool: 'Pool1'
-         repository: 'Repo1'
-         clone_vm:
-           template: 'MyVmTempalte'
-           vmCloneDefinition: 'MyCloneDefinition'
+  ovm_vm_create:
+    name: 'my_cloned_vm'
+    ovm_user: 'admin'
+    ovm_pass: 'password'
+    serverpool: 'Pool1'
+    repository: 'Repo1'
+    clone_vm:
+       template: 'MyVmTempalte'
+       vmCloneDefinition: 'MyCloneDefinition'
 '''
 
 RETURN = '''
