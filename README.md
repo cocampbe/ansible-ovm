@@ -77,7 +77,7 @@ Various modules to manage OVM via Ansible
            - "vm2"
 ```
 
-### unpresent a repo ###
+### Unpresent a repo ###
 
 ```
 ---
