@@ -1,5 +1,5 @@
-## Ansible-OVM ##
-This module can be used in an Ansible playbook to create VMs. 
+## Ansible-OVM Modules ##
+Various modules to manage OVM via Ansible
 
 ## Examples ##
 
@@ -56,6 +56,25 @@ This module can be used in an Ansible playbook to create VMs.
          clone_vm:
            template: 'myTemplate'
            vmCloneDefinition: 'myCloneCustomizer'
+```
+
+### Stop VMs ###
+
+```
+---
+ - hosts: <OVM_MANAGER>
+   name: stop VMs
+   gather_facts: no
+   tasks:
+     - name: clone VM
+       ovm_vm_state:
+         name: "{{item}}"
+         ovm_user: 'username'
+         ovm_pass: 'password'
+         state: 'stopped'
+       with_items:
+           - "vm1"
+           - "vm2"
 ```
         
 If you are not familair with Ansible, the host must be in your inventory file. Replace <OVM_MANAGER> with what you have in the inventory.
