@@ -33,7 +33,7 @@ options:
 
 EXAMPLES = '''
 - name: Delete a VNIC from a VM guest
-  ovm_repo_ownership:
+  ovm_vnic:
     name: 'vm_guest1'
     ovm_user: 'admin'
     ovm_pass: 'password'
