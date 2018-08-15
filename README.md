@@ -12,7 +12,7 @@ Various modules to manage OVM via Ansible
    gather_facts: no
    tasks:
     - name: create VM
-      ovm_vm:
+      ovm_create:
        name: 'myVM'
        ovm_user: 'username'
        ovm_pass: 'password'
@@ -47,7 +47,7 @@ Various modules to manage OVM via Ansible
    gather_facts: no
    tasks:
      - name: clone VM
-       ovm_vm:
+       ovm_clone:
          name: 'myClonedVM'
          ovm_user: 'username'
          ovm_pass: 'password'
@@ -102,8 +102,6 @@ If you are not familair with Ansible, the host must be in your inventory file. R
 
 - Each module has an example section.
 - I need to review the code and make changes. I was in a rush to get these modules working.
-
-
-## TODO ##
-
-Modules are working. I am working on adding better results. I would like to add rc output so that you can use Ansibles 'do-until' to retry a task until it completes successfully.
+- Modules are working for 3.4.
+- More modules to come.
+- If anyone wants to help on this project, I could really use it.
