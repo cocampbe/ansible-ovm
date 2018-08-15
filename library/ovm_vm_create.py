@@ -3,7 +3,7 @@
 
 DOCUMENTATION = '''
 ---
-module: ovm_vm
+module: ovm_vm_create
 short_description: This module manages Virtual Machines inside Oracle-VM
 description:
   - Module to manage Virtual Machine definitions inside Oracle-VM
@@ -57,7 +57,7 @@ options:
 
 EXAMPLES = '''
 - name: Create a Virtual Machine
-  ovm_vm:
+  ovm_vm_create:
     name: 'example_host'
     ovm_user: 'admin'
     ovm_pass: 'password'
@@ -77,15 +77,15 @@ EXAMPLES = '''
       - PXE
 
 - name: create VM
-       ovm_vm:
-         name: 'my_cloned_vm'
-         ovm_user: 'admin'
-         ovm_pass: 'password'
-         serverpool: 'Pool1'
-         repository: 'Repo1'
-         clone_vm:
-           template: 'MyVmTempalte'
-           vmCloneDefinition: 'MyCloneDefinition'
+  ovm_vm_create:
+    name: 'my_cloned_vm'
+    ovm_user: 'admin'
+    ovm_pass: 'password'
+    serverpool: 'Pool1'
+    repository: 'Repo1'
+    clone_vm:
+       template: 'MyVmTempalte'
+       vmCloneDefinition: 'MyCloneDefinition'
 '''
 
 RETURN = '''
@@ -145,7 +145,7 @@ class OVMRestClient:
         )
         job = response.json()
         self.monitor_job(job['id']['value'])
-
+    
     def create_vdisk(self, repositoryId, sparse, data):
         response = self.session.post(
             self.base_uri+'/Repository/'+repositoryId['value']+'/VirtualDisk?sparse='+str(sparse),
@@ -153,7 +153,7 @@ class OVMRestClient:
         )
         job = response.json()
         self.monitor_job(job['id']['value'])
-
+    
     def create_vnic(self, vmId, data):
         response = self.session.post(
             self.base_uri+'/Vm/'+vmId['value']+'/VirtualNic',
@@ -161,8 +161,8 @@ class OVMRestClient:
         )
         job = response.json()
         self.monitor_job(job['id']['value'])
-
-
+    
+    
     def map_vdisk(self, vmId, data):
         response = self.session.post(
             self.base_uri+'/Vm/'+vmId['value']+'/VmDiskMapping',
@@ -172,7 +172,7 @@ class OVMRestClient:
         self.monitor_job(job['id']['value'])
 
     def clone_vm(self, vmId, name, data):
-        response = self.session.put(
+	response = self.session.put(
             self.base_uri+'/Vm/'+vmId['value']+'/clone'+
                 '?serverPoolId='+data['serverPoolId']['value']+
                 '&repositoryId='+data['repositoryId']['value']+
@@ -244,7 +244,7 @@ def main():
                 choices=['present', 'absent']),
             name=dict(required=True),
             ovm_user=dict(required=True),
-            ovm_pass=dict(required=True,no_log=True),
+            ovm_pass=dict(required=True),
             ovm_host=dict(
                 default='https://127.0.0.1:7002'),
             clone_vm=dict(
@@ -336,7 +336,7 @@ def main():
                     })
             changed = True
             module.exit_json(changed=changed)
-
+        
         client.create_vm(
             'Vm',
             data = {
@@ -377,8 +377,8 @@ def main():
             if client.get_id_for_name('VirtualNic',network['name']) is None:
                 client.create_vnic(vm_id,data = { 'name': network['name'] })
                 changed = True
-            else:
-                changed = False
+	    else:
+	        changed = False
 
     module.exit_json(changed=changed)
 
